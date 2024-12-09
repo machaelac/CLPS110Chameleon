@@ -2,23 +2,29 @@ import pygame
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-DARK_GREEN = (0, 100, 0)
+DARK_GREEN = (0, 125, 0)
 
 SIZE = 100
 STRIPES = 5
 
 class Chameleon:
-    def __init__(self, x, y, speed, facing_right=True):
+    def __init__(self, x, y, speed, sz, facing_right=True):
         self.x = x
         self.y = y
         self.facing_right = facing_right
         self.base_color = DARK_GREEN
         self.stripe_color = self.base_color
         self.head_color = self.stripe_color
-        self.body_left = self.x - SIZE // 2 if self.facing_right else self.x + SIZE // 2 - SIZE
-        self.body_rect = pygame.Rect(self.body_left, self.y - SIZE // 4, SIZE, SIZE // 2)
+        self.size = SIZE if sz == None else sz
+        self.body_left = self.x - self.size // 2 if self.facing_right else self.x + self.size // 2 - self.size
+        self.body_rect = pygame.Rect(self.body_left, self.y - self.size // 4, self.size, self.size // 2)
         self.invisible_wall = 325 if self.facing_right else 475
         self.speed = speed
+
+    def change_color(self, color):
+        self.base_color = color
+        self.stripe_color = color
+        self.head_color = color
 
     def draw(self, screen):
         # Adjust drawing direction
@@ -40,32 +46,32 @@ class Chameleon:
 
         # Draw tail
         tail_x = (
-            self.body_rect.left - SIZE // 4
+            self.body_rect.left - self.size // 4
             if self.facing_right
-            else self.body_rect.right - SIZE // 4
+            else self.body_rect.right - self.size // 4
         )
-        tail_y = self.body_rect.centery - SIZE // 4
+        tail_y = self.body_rect.centery - self.size // 4
 
         pygame.draw.arc(
             screen, self.base_color,
-            (tail_x, tail_y, SIZE // 2, SIZE // 2),
+            (tail_x, tail_y, self.size // 2, self.size // 2),
             3.14 if self.facing_right else 4.71,
             4.71 if self.facing_right else 6.28,
             3
         )
 
         # Draw head
-        head_x = self.body_rect.right if self.facing_right else self.body_rect.left - SIZE // 4
-        pygame.draw.circle(screen, self.head_color, (head_x, self.y), SIZE // 4)
+        head_x = self.body_rect.right if self.facing_right else self.body_rect.left - self.size // 4
+        pygame.draw.circle(screen, self.head_color, (head_x, self.y), self.size // 4)
 
         # Draw eye
-        eye_x = head_x + SIZE // 8 if self.facing_right else head_x - SIZE // 8
-        pygame.draw.circle(screen, WHITE, (eye_x, self.y - SIZE // 8), SIZE // 10)
-        pygame.draw.circle(screen, BLACK, (eye_x, self.y - SIZE // 8), SIZE // 20)
+        eye_x = head_x + self.size // 8 if self.facing_right else head_x - self.size // 8
+        pygame.draw.circle(screen, WHITE, (eye_x, self.y - self.size // 8), self.size // 10)
+        pygame.draw.circle(screen, BLACK, (eye_x, self.y - self.size // 8), self.size // 20)
 
     def move_towards(self):
         if self.x < self.invisible_wall:
             self.x += self.speed  # Move right
         else:
             self.x -= self.speed # Move left
-        self.body_rect.x = self.x - SIZE // 2
+        self.body_rect.x = self.x - self.size // 2

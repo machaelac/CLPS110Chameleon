@@ -128,8 +128,8 @@ def game1_logic(level):
     countdown_screen()
 
     # Initialize chameleons
-    chameleonL = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, level, facing_right=True)
-    chameleonR = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, level, facing_right=False)
+    chameleonL = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, level, None, facing_right=True)
+    chameleonR = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, level, None, facing_right=False)
 
     # Predetermined answers
     winner = random.choice(["L", "R"])
