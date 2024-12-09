@@ -182,9 +182,9 @@ def mate_choice():
 def lovey_dovey():
     global cameron
 
-    female = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, 10, 100, DARK_GREEN, facing_right=False)
+    female = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, 15, 100, DARK_GREEN, facing_right=False)
     female.change_color((17, saved_color, 71))
-    cameron = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, 10, 100, BRIGHT_GREEN, facing_right=True)
+    cameron = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, 15, 100, BRIGHT_GREEN, facing_right=True)
 
     while abs(cameron.x - cameron.invisible_wall) >= 7 and abs(female.x - female.invisible_wall) >= 7:    
         cameron.move_towards()
