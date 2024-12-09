@@ -8,6 +8,7 @@ import Button
 # Initialize pygame & set up screen
 pygame.init()
 SWIDTH, SHEIGHT = 800, 600
+FPS = 60
 screen = pygame.display.set_mode((SWIDTH, SHEIGHT))
 pygame.display.set_caption("Chameleon Game")
 
@@ -35,24 +36,26 @@ game_started = False
 collision = False
 level = 1
 max_level = 5
-delays = [0.5, 0.25, 0.125, 0.0625, 0.01]
+delays = [1, 0.5, 0.25, 0.125, 0.0625, 0.01]
 stripe_diffs = [100, 50, 25, 12, 5]
 
 def start_game():
-    global game_started, running, collision, level
+    global game_started, running, collision, level, incorrect
     game_started = True
     running = True
     collision = False
+    incorrect = False
     level = 1
 
 def home_screen():
     global game_started
 
     screen.fill(WHITE)
+
     chameleon_image = pygame.transform.scale(pygame.image.load('cute_chameleon.jpg'), (SWIDTH, SHEIGHT // 2))
     screen.blit(chameleon_image, (0, SHEIGHT // 2))
 
-    title_text = fontLB.render("Chameleon Countdown", True, GREEN)
+    title_text = fontLB.render("* Chameleon Countdown *", True, GREEN)
     help_text = fontSB.render("Use your knowledge about Veiled Chameleon contest behaviors to keep these guys alive!", True, BLACK)
     help2_text = fontSB.render("Choose wisely and choose quickly... ready?", True, BLACK)
 
@@ -63,7 +66,7 @@ def home_screen():
     start_button = Button.Button(250, 225, 300, 75, RED, "Start Game", 35, start_game)
     start_button.draw(screen)
 
-    pygame.display.update()
+    pygame.display.flip()
 
     await_start(start_button)
 
@@ -104,26 +107,35 @@ def draw_chameleons(c1, c2):
     screen.blit(branch_background, (0, 125))
     c1.draw(screen)
     c2.draw(screen)
-    level_text = fontLB.render("Level " + str(level), True, RED)
+    level_text = fontLB.render(f"Level {level}", True, RED)
     screen.blit(level_text, (SWIDTH // 2 - level_text.get_width() // 2, 25))
+
+def game_over(message):
+    screen.fill(WHITE)
+    text = "Game Over: " + message
+    game_over_text = fontMB.render(text, True, BLACK)
+    screen.blit(game_over_text, (SWIDTH // 2 - game_over_text.get_width() // 2, 250))
+
+    restart_button = Button.Button(250, 350, 300, 75, RED, "Play again", 35, start_game)
+    restart_button.draw(screen)
     pygame.display.update()
 
-# Game 1
+    await_start(restart_button)
+
 def game1_logic(level):
-    global game_started
-    global collision
+    global game_started, collision
 
     countdown_screen()
 
     # Initialize chameleons
-    chameleonL = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, facing_right=True)
-    chameleonR = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, facing_right=False)
+    chameleonL = Chameleon.Chameleon(Chameleon.SIZE, SHEIGHT // 2, level, facing_right=True)
+    chameleonR = Chameleon.Chameleon(SWIDTH - Chameleon.SIZE, SHEIGHT // 2, level, facing_right=False)
 
     # Predetermined answers
     winner = random.choice(["L", "R"])
     approacher = random.choice(["L", "R"])
 
-    delay = delays[level - 1]
+    delay = round(delays[level - 1] * 1000)
     stripe_diff = stripe_diffs[level - 1]
 
     rand_green = random.choice(BRIGHTS)
@@ -137,7 +149,10 @@ def game1_logic(level):
 
     part1 = True
 
-    start_ticks = pygame.time.get_ticks()
+    color_changed = False
+    save_time = None
+
+    start_ticks = None
     while game_started:
         if part1:
             draw_chameleons(chameleonL, chameleonR)
@@ -160,13 +175,21 @@ def game1_logic(level):
 
             # Evaluate player's answer
             if player_answer != approacher:
+                response_ticks = pygame.time.get_ticks()
+                while pygame.time.get_ticks() - response_ticks < 3000:
+                    draw_chameleons(chameleonL, chameleonR)
+
+                    result = fontSB.render("Wrong! The brighter striped chameleon approaches first.", True, BLACK)
+                    screen.blit(result, (SWIDTH // 2 - result.get_width() // 2, 75))
+
+                    pygame.display.update()
                 return False        
 
             response_ticks = pygame.time.get_ticks()
-            while pygame.time.get_ticks() - response_ticks < 5000:
+            while pygame.time.get_ticks() - response_ticks < 3000:
                 draw_chameleons(chameleonL, chameleonR)
 
-                result = fontSB.render("Correct! The brighter striped chameleon approaches first.", True, GREEN)
+                result = fontSB.render("Correct! The brighter striped chameleon approaches first.", True, BLACK)
                 screen.blit(result, (SWIDTH // 2 - result.get_width() // 2, 75))
 
                 pygame.display.update()
@@ -175,45 +198,42 @@ def game1_logic(level):
             response_ticks = pygame.time.get_ticks()
             while pygame.time.get_ticks() - response_ticks < 5000:
                 screen.fill(WHITE)
-                contest_text1 = "Uh oh, a chameleon has approached, now they will battle."
-                contest_text2 = "Which one is most likely to win the fight?"
-                contest_prompt1 = fontSB.render(contest_text1, True, BLACK)
+                contest_text1 = "Uh oh, they're still approaching to battle."
+                contest_text2 = "Click on the one who is most likely to win the fight"
+                contest_prompt1 = fontMB.render(contest_text1, True, BLACK)
                 contest_prompt2 = fontMB.render(contest_text2, True, BLACK)
-                screen.blit(contest_prompt1, (SWIDTH // 2 - contest_prompt1.get_width() // 2, 10))
-                screen.blit(contest_prompt2, (SWIDTH // 2 - contest_prompt1.get_width() // 2, 40))   
+                screen.blit(contest_prompt1, (SWIDTH // 2 - contest_prompt1.get_width() // 2, 100))
+                screen.blit(contest_prompt2, (SWIDTH // 2 - contest_prompt2.get_width() // 2, 200))   
                 pygame.display.update()
             part1 = False
+            start_ticks = pygame.time.get_ticks()
 
         else:
             draw_chameleons(chameleonL, chameleonR)
 
-            elapsed_time = pygame.time.get_ticks() - start_ticks
-            if elapsed_time >= 1000:
-                if winner == "L":
-                    chameleonL.head_color = BRIGHTS[1]
-                    draw_chameleons(chameleonL, chameleonR)
+            if pygame.time.get_ticks() - start_ticks >= 1000:
+                if color_changed == False:
+                    if winner == "L":
+                        chameleonL.head_color = BRIGHTS[1]
+                    else:
+                        chameleonR.head_color = BRIGHTS[1]
+                    color_changed = True
+                    save_time = pygame.time.get_ticks()
 
-                    time.sleep(delay)
-
-                    chameleonR.head_color = BRIGHTS[1]
-                    draw_chameleons(chameleonL, chameleonR)
-
-                else:
-                    chameleonR.head_color = BRIGHTS[1]
-                    draw_chameleons(chameleonL, chameleonR)
-
-                    time.sleep(delay)
-
-                    chameleonL.head_color = BRIGHTS[1]
-                    draw_chameleons(chameleonL, chameleonR)
-
+                if color_changed == True:
+                    if pygame.time.get_ticks() - save_time >= delay:
+                        if winner == "L":
+                            chameleonR.head_color = BRIGHTS[1]
+                        else:
+                            chameleonL.head_color = BRIGHTS[1]
+                
                 chameleonL.move_towards()
                 chameleonR.move_towards()
 
                 draw_chameleons(chameleonL, chameleonR)
 
                 # Check if both chameleons have reached the targets
-                if abs(chameleonL.x - chameleonL.invisible_wall) < 5 and abs(chameleonR.x - chameleonR.invisible_wall) < 5:
+                if abs(chameleonL.x - chameleonL.invisible_wall) < 7 and abs(chameleonR.x - chameleonR.invisible_wall) < 7:
                     collision = True
                     return False
 
@@ -240,21 +260,9 @@ def game1_logic(level):
                             return False 
 
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(FPS)
 
     return False  # If something goes wrong, end game
-
-def game_over(message):
-    screen.fill(WHITE)
-    text = "Game Over: " + message
-    game_over_text = fontS.render(text, True, BLACK)
-    screen.blit(game_over_text, (SWIDTH // 2 - game_over_text.get_width() // 2, SHEIGHT // 2 - game_over_text.get_height() // 2))
-
-    restart_button = Button.Button(250, 225, 300, 75, RED, "Start Game", 35, start_game)
-    restart_button.draw(screen)
-    pygame.display.update()
-
-    await_start(restart_button)
 
 # Game loop
 while running:

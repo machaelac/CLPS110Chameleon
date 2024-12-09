@@ -8,7 +8,7 @@ SIZE = 100
 STRIPES = 5
 
 class Chameleon:
-    def __init__(self, x, y, facing_right=True):
+    def __init__(self, x, y, speed, facing_right=True):
         self.x = x
         self.y = y
         self.facing_right = facing_right
@@ -17,7 +17,8 @@ class Chameleon:
         self.head_color = self.stripe_color
         self.body_left = self.x - SIZE // 2 if self.facing_right else self.x + SIZE // 2 - SIZE
         self.body_rect = pygame.Rect(self.body_left, self.y - SIZE // 4, SIZE, SIZE // 2)
-        self.invisible_wall = 225 if self.facing_right else 375
+        self.invisible_wall = 325 if self.facing_right else 475
+        self.speed = speed
 
     def draw(self, screen):
         # Adjust drawing direction
@@ -64,7 +65,7 @@ class Chameleon:
 
     def move_towards(self):
         if self.x < self.invisible_wall:
-            self.x += 10  # Move right
+            self.x += self.speed  # Move right
         else:
-            self.x -= 10 # Move left
+            self.x -= self.speed # Move left
         self.body_rect.x = self.x - SIZE // 2
