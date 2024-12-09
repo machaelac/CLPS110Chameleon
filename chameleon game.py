@@ -12,7 +12,7 @@ STRIPE_COUNT = 5  # Number of stripes on the body
 
 # Colors
 BRIGHT_COLORS = [(34, 139, 34), (0, 255, 0), (144, 238, 144)]  # Shades of green
-DULL_COLORS = [(0, 128, 0), (0, 100, 0), (85, 107, 47)]  # Duller greens
+DULL_COLORS = [(0, 48, 0), (0, 100, 0), (56, 79, 15)]  # Duller greens
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BACKGROUND_COLOR = WHITE  # White background
@@ -158,12 +158,16 @@ def main():
             clock.tick(FPS)
 
         # Now enter the contest round
-        contest_text = "Now that one has approached, they will engage in their contest. Which chameleon is most likely to win the fight?"
-        contest_prompt = font.render(contest_text, True, instruction_color)
+        contest_text1 = "Now that one has approached, they will engage in their contest."
+        contest_text2 = "Which chameleon is most likely to win the fight?"
+        contest_prompt1 = font.render(contest_text1, True, instruction_color)
+        contest_prompt2 = font.render(contest_text2, True, instruction_color)
+
 
         # Display contest text
         screen.fill(BACKGROUND_COLOR)
-        screen.blit(contest_prompt, (SCREEN_WIDTH // 2 - contest_prompt.get_width() // 2, 10))
+        screen.blit(contest_prompt1, (SCREEN_WIDTH // 2 - contest_prompt1.get_width() // 2, 10))
+        screen.blit(contest_prompt2, (SCREEN_WIDTH // 2 - contest_prompt1.get_width() // 2, 40))   
         pygame.display.flip()
 
         pygame.time.wait(2000)  # Wait for 2 seconds before starting the contest round
